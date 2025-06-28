@@ -1,46 +1,90 @@
-import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+// src/components/Login.js
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Alert,
+} from "@mui/material";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(null);
+    setError("");
+    setLoading(true);
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert('Login successful!');
-      setEmail('');
-      setPassword('');
+      navigate("/");
     } catch (err) {
-      setError(err.message);
+      setError("Invalid email or password.");
     }
+
+    setLoading(false);
   };
 
   return (
-    <form onSubmit={handleLogin} style={{ maxWidth: 300, margin: 'auto' }}>
-      <h2>Login</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        required
-        style={{ width: '100%', padding: 8, marginBottom: 10 }}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        required
-        style={{ width: '100%', padding: 8, marginBottom: 10 }}
-      />
-      <button type="submit" style={{ padding: 10, width: '100%' }}>Login</button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </form>
+    <Container maxWidth="xs" sx={{ mt: 8, mb: 4 }}>
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
+        Log In
+      </Typography>
+
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+      <Box component="form" onSubmit={handleLogin} noValidate>
+        <TextField
+          label="Email"
+          type="email"
+          variant="outlined"
+          fullWidth
+          required
+          margin="normal"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+        />
+
+        <TextField
+          label="Password"
+          type="password"
+          variant="outlined"
+          fullWidth
+          required
+          margin="normal"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+        />
+
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          fullWidth
+          sx={{ mt: 3, mb: 2 }}
+          disabled={loading}
+        >
+          {loading ? "Logging in..." : "Log In"}
+        </Button>
+      </Box>
+
+      <Typography variant="body2" align="center" sx={{ mt: 2 }}>
+        Don’t have an account?{" "}
+        <Link to="/signup" style={{ textDecoration: "none", color: "#1976d2" }}>
+          Sign Up
+        </Link>
+      </Typography>
+    </Container>
   );
 }
