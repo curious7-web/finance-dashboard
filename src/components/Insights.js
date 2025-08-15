@@ -16,12 +16,11 @@ const Insights = ({ user, transactions }) => {
       setLoading(true);
       setError(null);
 
-      // Generate minimal and useful input from transactions
       const inputText = transactions
         .slice(0, 10)
         .map((tx) => {
-          let clean = `${tx.category || ""}: ${tx.description || ""}`;
-          return clean.replace(/[^\w\s.,₹$€£¥]/g, "").trim(); // Remove special symbols
+          const clean = `${tx.category || ""}: ${tx.description || ""}`;
+          return clean.replace(/[^\w\s.,₹$€£¥]/g, "").trim();
         })
         .filter(Boolean)
         .join(". ");
@@ -32,14 +31,25 @@ const Insights = ({ user, transactions }) => {
         return;
       }
 
+      const apiUrl = process.env.REACT_APP_AI_API;
+
+      if (!apiUrl) {
+        setError("AI API URL not configured. Please check .env file.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch("/api/ai-insights", {
+        const response = await fetch(apiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ inputText }),
         });
 
-        if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`API error: ${response.status} - ${errText}`);
+        }
 
         const data = await response.json();
         setAiInsights(data.insights || "No insights could be generated.");
